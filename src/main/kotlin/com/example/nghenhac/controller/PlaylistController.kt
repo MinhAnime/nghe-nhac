@@ -21,17 +21,14 @@ class PlaylistController(
         authentication: Authentication
     ): ResponseEntity<PlaylistResponseDTO> {
 
-        // Lấy username từ "principal" đã được xác thực
+
         val username = authentication.name
 
         val playlist = playlistService.createPlaylist(request, username)
         return ResponseEntity.status(HttpStatus.CREATED).body(playlist)
     }
 
-    /**
-     * API 7: Thêm bài hát vào playlist (Yêu cầu Đăng nhập & Quyền sở hữu)
-     * POST /api/v1/playlists/{playlistId}/songs
-     */
+
     @PostMapping("/{playlistId}/songs")
     fun addSongToPlaylist(
         @PathVariable playlistId: Long,
@@ -58,18 +55,17 @@ class PlaylistController(
     @GetMapping("/{playlistId}")
     fun getPlaylistById(
         @PathVariable playlistId: Long,
-        authentication: Authentication // Vẫn cần để kiểm tra bảo mật (nếu muốn)
+        authentication: Authentication
     ): ResponseEntity<PlaylistDetailDTO> {
         // Service sẽ lo việc kiểm tra (nếu playlist là private)
         val playlistDetails = playlistService.getPlaylistDetails(playlistId)
         return ResponseEntity.ok(playlistDetails)
     }
 
-    // --- Xử lý lỗi ---
+
 
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<Map<String, String>> {
-        // Trả về 403 Forbidden nếu user không phải chủ playlist
         return ResponseEntity
             .status(HttpStatus.FORBIDDEN)
             .body(mapOf("error" to (ex.message ?: "Không có quyền truy cập")))
@@ -77,7 +73,6 @@ class PlaylistController(
 
     @ExceptionHandler(EntityNotFoundException::class)
     fun handleNotFound(ex: EntityNotFoundException): ResponseEntity<Map<String, String>> {
-        // Trả về 404 nếu không tìm thấy playlist/song/user
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
             .body(mapOf("error" to (ex.message ?: "Không tìm thấy tài nguyên")))
