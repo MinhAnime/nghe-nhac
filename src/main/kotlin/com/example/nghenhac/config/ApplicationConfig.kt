@@ -19,11 +19,10 @@ class ApplicationConfig(
 
             org.springframework.security.core.userdetails.User
                 .withUsername(user.username)
-                .password(user.password) // Phải có password, dù không dùng để check
-                .authorities("USER") // Sẽ thêm Role sau nếu cần
+                .password(user.password)
+                .authorities("USER")
                 .build()
         }
     }
 
-    // (Chúng ta sẽ cần AuthenticationProvider và AuthenticationManager sau)
 }
