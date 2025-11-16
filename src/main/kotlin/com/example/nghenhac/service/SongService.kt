@@ -79,4 +79,8 @@ class SongService(
             coverArtUrl = coverUrl
         )
     }
+    fun getAllSongs(): List<SongResponseDTO> {
+        val songs = songRepository.findAllWithArtist()
+        return songs.map { mapToSongResponseDTO(it) }
+    }
 }

@@ -42,6 +42,11 @@ class SongController(
         return ResponseEntity.status(HttpStatus.CREATED).body(newSongResponse)
     }
 
+    @GetMapping
+    fun getAllSongs(): ResponseEntity<List<SongResponseDTO>> {
+        return ResponseEntity.ok(songService.getAllSongs())
+    }
+
     @GetMapping("/{songId}")
     fun getSongDetails(@PathVariable songId: Long): ResponseEntity<SongResponseDTO> {
         val songResponse = songService.getSongDetails(songId)
