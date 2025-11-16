@@ -19,7 +19,7 @@ data class Artist(
 
     @OneToMany(
         mappedBy = "artist",
-        cascade = [CascadeType.REMOVE], // Nếu xóa Artist, các bài hát cũng bị xóa
+        cascade = [CascadeType.REMOVE],
         fetch = FetchType.LAZY
     )
     val songs: List<Song> = emptyList()
