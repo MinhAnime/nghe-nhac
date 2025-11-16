@@ -39,26 +39,20 @@ class AuthService(
     }
 
 
-
-    /**
-     * Xử lý logic đăng nhập
-     */
     fun login(request: LoginRequestDTO): LoginResponseDTO {
-        // 1. Tìm user bằng username
+
         val user = userRepository.findByUsername(request.username)
             ?: throw IllegalArgumentException("Username hoặc mật khẩu không đúng")
 
-        // 2. KIỂM TRA MẬT KHẨU
-        // Dùng `matches` để so sánh mật khẩu gốc (request.pass)
-        // với mật khẩu đã băm (user.passwordHash) trong database
+
         if (!passwordEncoder.matches(request.pass, user.password)) {
             throw IllegalArgumentException("Username hoặc mật khẩu không đúng")
         }
 
-        // 3. Nếu mật khẩu khớp, tạo JWT
+
         val token = jwtService.generateToken(user.username)
 
-        // 4. Trả về token và thông tin user
+
         return LoginResponseDTO(
             token = token,
             user = UserResponseDTO(user.id!!, user.username, user.email)
