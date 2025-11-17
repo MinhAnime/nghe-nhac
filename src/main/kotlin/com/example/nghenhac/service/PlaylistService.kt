@@ -9,6 +9,8 @@ import com.example.nghenhac.repository.PlaylistRepository
 import com.example.nghenhac.repository.SongRepository
 import com.example.nghenhac.repository.UserRepository
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 
@@ -88,14 +90,13 @@ class PlaylistService(
     }
 
 
-    fun getMyPlaylists(username: String): List<PlaylistSummaryDTO> {
+    fun getMyPlaylists(username: String, page: Int, size: Int): List<PlaylistSummaryDTO> {
         val owner = userRepository.findByUsername(username)
             ?: throw EntityNotFoundException("User không tồn tại.")
 
-        val playlists = playlistRepository.findPlaylistsByOwnerId(owner.id!!)
-
-
-        return playlists.map { mapToPlaylistSummaryDTO(it) }
+        val pageable = PageRequest.of(page, size, Sort.by("id").descending())
+        val playlistPage = playlistRepository.findPlaylistsByOwnerId(owner.id!!, pageable)
+        return playlistPage.content.map { mapToPlaylistSummaryDTO(it) }
     }
 
     fun getPlaylistDetails(playlistId: Long): PlaylistDetailDTO {
