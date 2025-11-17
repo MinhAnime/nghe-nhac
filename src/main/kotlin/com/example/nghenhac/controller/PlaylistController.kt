@@ -46,9 +46,13 @@ class PlaylistController(
     }
 
     @GetMapping("/my-playlists")
-    fun getMyPlaylists(authentication: Authentication): ResponseEntity<List<PlaylistSummaryDTO>> {
+    fun getMyPlaylists(
+        authentication: Authentication,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<PlaylistSummaryDTO>> {
         val username = authentication.name
-        val playlists = playlistService.getMyPlaylists(username)
+        val playlists = playlistService.getMyPlaylists(username, page, size)
         return ResponseEntity.ok(playlists)
     }
 
