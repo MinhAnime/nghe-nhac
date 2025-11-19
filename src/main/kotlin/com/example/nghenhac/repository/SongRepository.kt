@@ -22,4 +22,11 @@ interface SongRepository :JpaRepository<Song, Long> {
 
     @Query("SELECT s FROM Song s JOIN s.playlists p WHERE p.id = :playlistId")
     fun findByPlaylistId(@Param("playlistId") playlistId: Long, pageable: Pageable): Page<Song>
+
+    @Query("""
+        SELECT s FROM Song s JOIN FETCH s.artist a 
+        WHERE LOWER(s.title) LIKE LOWER(CONCAT('%', :query, '%')) 
+        OR LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%'))
+    """)
+    fun searchSongs(@Param("query") query: String): List<Song>
 }
