@@ -13,9 +13,7 @@ import java.util.*
 
 @Repository
 interface SongRepository :JpaRepository<Song, Long> {
-    fun findByTitleContainingIgnoreCase(title: String): List<Song>
-    fun findByArtistId(artistId: Long): List<Song>
-    fun findFirstByPlaylistsContains(playlist: Playlist): Song?
+    fun findTop4ByPlaylistsContains(playlist: Playlist): List<Song>
 
     @Query("SELECT s FROM Song s JOIN FETCH s.artist")
     fun findAllWithArtist(pageable: Pageable): Page<Song>
