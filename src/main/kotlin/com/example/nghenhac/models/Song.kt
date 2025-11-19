@@ -33,5 +33,5 @@ class Song(
         mappedBy = "songs",
         fetch = FetchType.LAZY
     )
-    val playlists: MutableSet<Playlist> = mutableSetOf()
+    val playlists: MutableList<Playlist> = mutableListOf()
 )
