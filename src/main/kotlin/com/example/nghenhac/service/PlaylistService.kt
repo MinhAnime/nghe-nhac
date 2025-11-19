@@ -170,17 +170,17 @@ class PlaylistService(
 
     private fun mapToPlaylistSummaryDTO(playlist: Playlist): PlaylistSummaryDTO {
 
-        val firstSong = songRepository.findFirstByPlaylistsContains(playlist)
+        val topSongs = songRepository.findTop4ByPlaylistsContains(playlist)
 
-        val coverUrl = firstSong?.coverArtObjectName?.let {
-            fileStorageService.getCoverUrl(it)
+        val urls = topSongs.mapNotNull { song ->
+            song.coverArtObjectName?.let { fileStorageService.getCoverUrl(it) }
         }
 
         return PlaylistSummaryDTO(
             id = playlist.id!!,
             name = playlist.name,
             ownerUsername = playlist.owner.username,
-            coverArtUrl = coverUrl
+            thumbnails = urls
         )
     }
 
