@@ -86,4 +86,8 @@ class SongService(
         val songPage = songRepository.findAllWithArtist(pageable)
         return songPage.content.map { mapToSongResponseDTO(it) }
     }
+    fun searchSongs(query: String): List<SongResponseDTO> {
+        val songs = songRepository.searchSongs(query)
+        return songs.map { mapToSongResponseDTO(it) }
+    }
 }
