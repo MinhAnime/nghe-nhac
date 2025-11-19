@@ -190,6 +190,7 @@ class PlaylistService(
         return songPage.content.map { songService.mapToSongResponseDTO(it) }
     }
 
+
     private fun mapToPlaylistDetailDTO(playlist: Playlist): PlaylistDetailDTO {
         val songDTOs = playlist.songs.map { song ->
             songService.mapToSongResponseDTO(song)
