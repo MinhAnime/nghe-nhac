@@ -74,6 +74,24 @@ class PlaylistController(
         return ResponseEntity.ok(playlistService.getSongsInPlaylist(playlistId, page, size))
     }
 
+    @DeleteMapping("/{playlistId}")
+    fun deletePlaylist(
+        @PathVariable playlistId: Long,
+        authentication: Authentication
+    ): ResponseEntity<Map<String, String>> {
+        playlistService.deletePlaylist(playlistId, authentication.name)
+        return ResponseEntity.ok(mapOf("message" to "Đã xóa playlist thành công"))
+    }
+
+    @DeleteMapping("/{playlistId}/songs/{songId}")
+    fun removeSongFromPlaylist(
+        @PathVariable playlistId: Long,
+        @PathVariable songId: Long,
+        authentication: Authentication
+    ): ResponseEntity<Map<String, String>> {
+        playlistService.removeSongFromPlaylist(playlistId, songId, authentication.name)
+        return ResponseEntity.ok(mapOf("message" to "Đã xóa bài hát khỏi playlist"))
+    }
 
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<Map<String, String>> {
