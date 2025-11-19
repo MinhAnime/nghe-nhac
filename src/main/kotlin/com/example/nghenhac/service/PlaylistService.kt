@@ -1,9 +1,6 @@
 package com.example.nghenhac.service
 
-import com.example.nghenhac.dto.CreatePlaylistRequestDTO
-import com.example.nghenhac.dto.PlaylistDetailDTO
-import com.example.nghenhac.dto.PlaylistResponseDTO
-import com.example.nghenhac.dto.PlaylistSummaryDTO
+import com.example.nghenhac.dto.*
 import com.example.nghenhac.models.Playlist
 import com.example.nghenhac.repository.PlaylistRepository
 import com.example.nghenhac.repository.SongRepository
@@ -136,6 +133,13 @@ class PlaylistService(
             coverArtUrl = coverUrl
         )
     }
+
+    fun getSongsInPlaylist(playlistId: Long, page: Int, size: Int): List<SongResponseDTO> {
+        val pageable = PageRequest.of(page, size, Sort.by("id").descending())
+        val songPage = songRepository.findByPlaylistId(playlistId, pageable)
+        return songPage.content.map { songService.mapToSongResponseDTO(it) }
+    }
+
     private fun mapToPlaylistDetailDTO(playlist: Playlist): PlaylistDetailDTO {
         val songDTOs = playlist.songs.map { song ->
             songService.mapToSongResponseDTO(song)
