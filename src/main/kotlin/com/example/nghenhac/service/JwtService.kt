@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.*
 import javax.crypto.SecretKey
+import kotlin.time.Duration
 
 @Service
 class JwtService {
@@ -24,7 +25,7 @@ class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
     }
 
-    private val expirationTimeMs: Long = 86_400_000
+    private val expirationTimeMs: Long = 2_592_000_000
 
 
     fun generateToken(username: String): String {
