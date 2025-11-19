@@ -65,7 +65,14 @@ class PlaylistController(
         val playlistDetails = playlistService.getPlaylistDetails(playlistId)
         return ResponseEntity.ok(playlistDetails)
     }
-
+    @GetMapping("/{playlistId}/songs")
+    fun getSongsInPlaylist(
+        @PathVariable playlistId: Long,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<SongResponseDTO>> {
+        return ResponseEntity.ok(playlistService.getSongsInPlaylist(playlistId, page, size))
+    }
 
 
     @ExceptionHandler(AccessDeniedException::class)
@@ -80,5 +87,11 @@ class PlaylistController(
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
             .body(mapOf("error" to (ex.message ?: "Không tìm thấy tài nguyên")))
+    }
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleBadRequest(ex: IllegalArgumentException): ResponseEntity<Map<String, String>> {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(mapOf("message" to (ex.message ?: "Lỗi không xác định")))
     }
 }
