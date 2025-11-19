@@ -27,4 +27,10 @@ interface SongRepository :JpaRepository<Song, Long> {
         OR LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%'))
     """)
     fun searchSongs(@Param("query") query: String): List<Song>
+
+    @Query("SELECT s FROM Playlist p JOIN p.songs s WHERE p.id = :playlistId ORDER BY INDEX(s) ASC")
+    fun findSongsByPlaylistIdOrdered(
+        @Param("playlistId") playlistId: Long,
+        pageable: Pageable
+    ): Page<Song>
 }
