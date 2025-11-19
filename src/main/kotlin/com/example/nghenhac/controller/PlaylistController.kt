@@ -93,6 +93,16 @@ class PlaylistController(
         return ResponseEntity.ok(mapOf("message" to "Đã xóa bài hát khỏi playlist"))
     }
 
+    @PutMapping("/{playlistId}")
+    fun renamePlaylist(
+        @PathVariable playlistId: Long,
+        @RequestBody request: RenamePlaylistRequestDTO,
+        authentication: Authentication
+    ): ResponseEntity<PlaylistResponseDTO> {
+        val result = playlistService.renamePlaylist(playlistId, request.name, authentication.name)
+        return ResponseEntity.ok(result)
+    }
+
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<Map<String, String>> {
         return ResponseEntity
