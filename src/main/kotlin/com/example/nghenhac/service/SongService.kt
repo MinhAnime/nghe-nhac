@@ -6,6 +6,8 @@ import com.example.nghenhac.models.Song
 import com.example.nghenhac.repository.ArtistRepository
 import com.example.nghenhac.repository.SongRepository
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
@@ -79,8 +81,9 @@ class SongService(
             coverArtUrl = coverUrl
         )
     }
-    fun getAllSongs(): List<SongResponseDTO> {
-        val songs = songRepository.findAllWithArtist()
-        return songs.map { mapToSongResponseDTO(it) }
+    fun getAllSongs(page: Int, size: Int): List<SongResponseDTO> {
+        val pageable = PageRequest.of(page, size, Sort.by("id").descending())
+        val songPage = songRepository.findAllWithArtist(pageable)
+        return songPage.content.map { mapToSongResponseDTO(it) }
     }
 }
