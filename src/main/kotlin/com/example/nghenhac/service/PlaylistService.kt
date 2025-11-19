@@ -185,8 +185,8 @@ class PlaylistService(
     }
 
     fun getSongsInPlaylist(playlistId: Long, page: Int, size: Int): List<SongResponseDTO> {
-        val pageable = PageRequest.of(page, size, Sort.by("id").descending())
-        val songPage = songRepository.findByPlaylistId(playlistId, pageable)
+        val pageable = PageRequest.of(page, size)
+        val songPage = songRepository.findSongsByPlaylistIdOrdered(playlistId, pageable)
         return songPage.content.map { songService.mapToSongResponseDTO(it) }
     }
 
