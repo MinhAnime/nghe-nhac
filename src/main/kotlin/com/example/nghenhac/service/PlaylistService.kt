@@ -55,6 +55,56 @@ class PlaylistService(
         return mapToPlaylistResponse(savedPlaylist)
     }
 
+    fun deletePlaylist(playlistId: Long, username: String) {
+        val playlist = playlistRepository.findById(playlistId)
+            .orElseThrow { EntityNotFoundException("Playlist không tồn tại") }
+
+        val currentUser = userRepository.findByUsername(username)
+            ?: throw EntityNotFoundException("User không tồn tại")
+
+        // Kiểm tra quyền sở hữu
+        if (playlist.owner.id != currentUser.id) {
+            throw AccessDeniedException("Bạn không có quyền xóa playlist này")
+        }
+
+        playlistRepository.delete(playlist)
+    }
+    fun removeSongFromPlaylist(playlistId: Long, songId: Long, username: String) {
+        // Fetch playlist kèm songs để thao tác
+        val playlist = playlistRepository.findPlaylistWithSongsAndArtistsById(playlistId)
+            ?: throw EntityNotFoundException("Playlist không tồn tại.")
+
+        val currentUser = userRepository.findByUsername(username)
+            ?: throw EntityNotFoundException("User không tồn tại.")
+
+        if (playlist.owner.id != currentUser.id) {
+            throw AccessDeniedException("Bạn không có quyền sửa playlist này.")
+        }
+
+        // Tìm bài hát trong danh sách hiện tại
+        // tìm trong playlist.songs
+        val songToRemove = playlist.songs.find { it.id == songId }
+            ?: throw EntityNotFoundException("Bài hát không có trong playlist này.")
+
+        playlist.songs.remove(songToRemove)
+        playlistRepository.save(playlist)
+    }
+    fun renamePlaylist(playlistId: Long, newName: String, username: String): PlaylistResponseDTO {
+        val playlist = playlistRepository.findById(playlistId)
+            .orElseThrow { EntityNotFoundException("Playlist không tồn tại") }
+
+        val currentUser = userRepository.findByUsername(username)
+            ?: throw EntityNotFoundException("User không tồn tại")
+
+        if (playlist.owner.id != currentUser.id) {
+            throw AccessDeniedException("Bạn không có quyền sửa playlist này")
+        }
+
+        playlist.name = newName
+        val updatedPlaylist = playlistRepository.save(playlist)
+
+        return mapToPlaylistResponse(updatedPlaylist)
+    }
 
     fun addSongToPlaylist(playlistId: Long, songId: Long, username: String): PlaylistResponseDTO {
 
