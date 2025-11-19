@@ -43,8 +43,11 @@ class SongController(
     }
 
     @GetMapping
-    fun getAllSongs(): ResponseEntity<List<SongResponseDTO>> {
-        return ResponseEntity.ok(songService.getAllSongs())
+    fun getAllSongs(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int
+    ): ResponseEntity<List<SongResponseDTO>> {
+        return ResponseEntity.ok(songService.getAllSongs(page, size))
     }
 
     @GetMapping("/{songId}")
