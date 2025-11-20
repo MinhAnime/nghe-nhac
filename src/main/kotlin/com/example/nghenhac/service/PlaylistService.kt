@@ -146,12 +146,40 @@ class PlaylistService(
         return playlistPage.content.map { mapToPlaylistSummaryDTO(it) }
     }
 
-    fun getPlaylistDetails(playlistId: Long): PlaylistDetailDTO {
+    fun getPlaylistDetails(playlistId: Long, requesterUsername: String): PlaylistDetailDTO {
 
         val playlist = playlistRepository.findPlaylistWithSongsAndArtistsById(playlistId)
             ?: throw EntityNotFoundException("Playlist không tồn tại.")
 
+        val requester = userRepository.findByUsername(requesterUsername)
+            ?: throw EntityNotFoundException("User không tồn tại.")
+
+        val isOwner = playlist.owner.id == requester.id
+
+        if (!isOwner && !playlist.isPublic) {
+            throw AccessDeniedException("Playlist này là riêng tư. Bạn không có quyền xem.")
+        }
+
         return mapToPlaylistDetailDTO(playlist)
+    }
+
+    fun togglePrivacy(playlistId: Long, username: String): PlaylistResponseDTO {
+        val playlist = playlistRepository.findById(playlistId)
+            .orElseThrow { EntityNotFoundException("Playlist không tồn tại.") }
+
+        val currentUser = userRepository.findByUsername(username)
+            ?: throw EntityNotFoundException("User không tồn tại.")
+
+        // Chỉ chủ sở hữu mới được đổi
+        if (playlist.owner.id != currentUser.id) {
+            throw AccessDeniedException("Bạn không có quyền chỉnh sửa playlist này.")
+        }
+
+        // Đảo ngược trạng thái (True <-> False)
+        playlist.isPublic = !playlist.isPublic
+
+        val savedPlaylist = playlistRepository.save(playlist)
+        return mapToPlaylistResponse(savedPlaylist)
     }
 
     private fun mapToPlaylistResponse(playlist: Playlist): PlaylistResponseDTO {
@@ -164,13 +192,17 @@ class PlaylistService(
             id = playlist.id!!,
             name = playlist.name,
             ownerUsername = playlist.owner.username,
+            isPublic = playlist.isPublic,
             songs = songDTOs
         )
     }
 
-    private fun mapToPlaylistSummaryDTO(playlist: Playlist): PlaylistSummaryDTO {
+     fun mapToPlaylistSummaryDTO(playlist: Playlist): PlaylistSummaryDTO {
 
-        val topSongs = songRepository.findTop4ByPlaylistsContains(playlist)
+        val topSongs = songRepository.findPlaylistThumbnails(
+            playlistId = playlist.id!!,
+            pageable = PageRequest.of(0, 4)
+        )
 
         val urls = topSongs.mapNotNull { song ->
             song.coverArtObjectName?.let { fileStorageService.getCoverUrl(it) }
@@ -180,6 +212,7 @@ class PlaylistService(
             id = playlist.id!!,
             name = playlist.name,
             ownerUsername = playlist.owner.username,
+            isPublic = playlist.isPublic,
             thumbnails = urls
         )
     }
@@ -200,6 +233,7 @@ class PlaylistService(
             id = playlist.id!!,
             name = playlist.name,
             ownerUsername = playlist.owner.username,
+            isPublic = playlist.isPublic,
             songs = songDTOs
         )
     }
