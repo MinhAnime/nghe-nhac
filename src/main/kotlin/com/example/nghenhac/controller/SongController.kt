@@ -67,11 +67,6 @@ class SongController(
             .build()
     }
 
-    @GetMapping("/search")
-    fun searchSongs(@RequestParam("q") query: String): ResponseEntity<List<SongResponseDTO>> {
-        return ResponseEntity.ok(songService.searchSongs(query))
-    }
-
 
     @ExceptionHandler(EntityNotFoundException::class)
     fun handleNotFound(ex: EntityNotFoundException): ResponseEntity<Map<String, String>> {
