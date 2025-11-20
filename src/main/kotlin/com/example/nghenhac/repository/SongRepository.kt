@@ -33,4 +33,10 @@ interface SongRepository :JpaRepository<Song, Long> {
         @Param("playlistId") playlistId: Long,
         pageable: Pageable
     ): Page<Song>
+
+    @Query("SELECT s FROM Playlist p JOIN p.songs s WHERE p.id = :playlistId ORDER BY INDEX(s) ASC")
+    fun findPlaylistThumbnails(
+        @Param("playlistId") playlistId: Long,
+        pageable: Pageable
+    ): List<Song>
 }
