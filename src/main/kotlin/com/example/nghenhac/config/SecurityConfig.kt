@@ -34,6 +34,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                     .requestMatchers("/api/v1/songs/stream/**").permitAll()
                     .requestMatchers("/api/v1/playlists/**").hasAuthority("USER")
                     .requestMatchers("/api/v1/songs/**").hasAuthority("USER")
+                    .requestMatchers("/api/v1/search/**").hasAuthority("USER")
 
 
                     .anyRequest().authenticated()
