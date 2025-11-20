@@ -61,8 +61,7 @@ class PlaylistController(
         @PathVariable playlistId: Long,
         authentication: Authentication
     ): ResponseEntity<PlaylistDetailDTO> {
-        // Service sẽ lo việc kiểm tra (nếu playlist là private)
-        val playlistDetails = playlistService.getPlaylistDetails(playlistId)
+        val playlistDetails = playlistService.getPlaylistDetails(playlistId, authentication.name)
         return ResponseEntity.ok(playlistDetails)
     }
     @GetMapping("/{playlistId}/songs")
@@ -100,6 +99,15 @@ class PlaylistController(
         authentication: Authentication
     ): ResponseEntity<PlaylistResponseDTO> {
         val result = playlistService.renamePlaylist(playlistId, request.name, authentication.name)
+        return ResponseEntity.ok(result)
+    }
+
+    @PutMapping("/{playlistId}/privacy")
+    fun togglePrivacy(
+        @PathVariable playlistId: Long,
+        authentication: Authentication
+    ): ResponseEntity<PlaylistResponseDTO> {
+        val result = playlistService.togglePrivacy(playlistId, authentication.name)
         return ResponseEntity.ok(result)
     }
 
