@@ -26,8 +26,8 @@ class Playlist(
         joinColumns = [JoinColumn(name = "playlist_id")],
         inverseJoinColumns = [JoinColumn(name = "song_id")]
     )
-    @OrderColumn(name = "display_order") // 1. Giúp DB nhớ vị trí (0, 1, 2...)
-    val songs: MutableList<Song> = mutableListOf() // 2. Đổi thành MutableList
+    @OrderColumn(name = "display_order")
+    val songs: MutableList<Song> = mutableListOf()
 ) {
 
     fun addSong(song: Song) {

@@ -11,8 +11,8 @@ import org.springframework.web.multipart.MultipartFile
 import java.net.URI
 import java.util.*
 
-@RestController // Đánh dấu đây là một API Controller (trả về JSON/HTTP response)
-@RequestMapping("/api/v1/songs") // Tiền tố chung cho tất cả API trong class này
+@RestController
+@RequestMapping("/api/v1/songs")
 class SongController(
     // Tiêm (inject) SongService
     private val songService: SongService
