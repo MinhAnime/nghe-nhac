@@ -16,7 +16,7 @@ import java.util.*
 class SongService(
     private val songRepository: SongRepository,
     private val artistRepository: ArtistRepository,
-    private val fileStorageService: FileStorageService
+    private val fileStorageService: FileStorageService,
 ) {
 
 
@@ -86,8 +86,5 @@ class SongService(
         val songPage = songRepository.findAllWithArtist(pageable)
         return songPage.content.map { mapToSongResponseDTO(it) }
     }
-    fun searchSongs(query: String): List<SongResponseDTO> {
-        val songs = songRepository.searchSongs(query)
-        return songs.map { mapToSongResponseDTO(it) }
-    }
+
 }
