@@ -23,4 +23,11 @@ interface PlaylistRepository : JpaRepository<Playlist, Long> {
     fun findByOwnerIdAndIsPublicTrue(ownerId: Long): List<Playlist>
 
     fun existsByNameAndOwner(name: String, owner: User): Boolean
+
+    @Query("""
+        SELECT p FROM Playlist p 
+        WHERE p.isPublic = true 
+        AND LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
+    """)
+    fun searchPublicPlaylists(@Param("query") query: String): List<Playlist>
 }
