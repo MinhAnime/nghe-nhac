@@ -3,8 +3,12 @@ package com.example.nghenhac.service
 import com.example.nghenhac.dto.SongUploadDTO
 import com.example.nghenhac.models.Artist
 import com.example.nghenhac.models.Song
+import com.example.nghenhac.models.User
+import com.example.nghenhac.models.ListeningHistory
 import com.example.nghenhac.repository.ArtistRepository
+import com.example.nghenhac.repository.ListeningHistoryRepository
 import com.example.nghenhac.repository.SongRepository
+import com.example.nghenhac.repository.UserRepository
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -12,6 +16,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.ArgumentMatchers.any
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
@@ -20,6 +27,8 @@ class SongServiceTest {
     private lateinit var songRepository: SongRepository
     private lateinit var artistRepository: ArtistRepository
     private lateinit var fileStorageService: FileStorageService
+    private lateinit var userRepository: UserRepository
+    private lateinit var listeningHistoryRepository: ListeningHistoryRepository
     private lateinit var songService: SongService
 
     @BeforeEach
@@ -27,7 +36,15 @@ class SongServiceTest {
         songRepository = Mockito.mock(SongRepository::class.java)
         artistRepository = Mockito.mock(ArtistRepository::class.java)
         fileStorageService = Mockito.mock(FileStorageService::class.java)
-        songService = SongService(songRepository, artistRepository, fileStorageService)
+        userRepository = Mockito.mock(UserRepository::class.java)
+        listeningHistoryRepository = Mockito.mock(ListeningHistoryRepository::class.java)
+        songService = SongService(
+            songRepository,
+            artistRepository,
+            fileStorageService,
+            userRepository,
+            listeningHistoryRepository
+        )
     }
 
     @Test
@@ -51,7 +68,7 @@ class SongServiceTest {
             songObjectName = "unique-song.mp3",
             coverArtObjectName = "unique-cover.jpg"
         )
-        `when`(songRepository.save(any(Song::class.java))).thenReturn(songToSave)
+        `when`(songRepository.save(any(Song::class.java) ?: songToSave)).thenReturn(songToSave)
         `when`(fileStorageService.getCoverUrl("unique-cover.jpg")).thenReturn("http://localhost:9000/covers/unique-cover.jpg")
 
         val response = songService.createSong(dto, songFile, coverFile)
@@ -103,5 +120,69 @@ class SongServiceTest {
             songService.getSongStreamUrl(10L)
         }
         assertEquals("Song không tồn tại với ID: 10", exception.message)
+    }
+
+    @Test
+    fun toggleLikeSong_Like_Successful() {
+        val artist = Artist(1L, "Artist Name")
+        val song = Song(id = 10L, title = "Song Title", durationSeconds = 180, artist = artist, songObjectName = "unique-song.mp3")
+        val user = User(id = 1L, username = "testuser", email = "test@example.com", password = "password")
+
+        `when`(userRepository.findByUsername("testuser")).thenReturn(user)
+        `when`(songRepository.findById(10L)).thenReturn(Optional.of(song))
+
+        val isLiked = songService.toggleLikeSong(10L, "testuser")
+
+        assertTrue(isLiked)
+        assertTrue(user.likedSongs.contains(song))
+    }
+
+    @Test
+    fun toggleLikeSong_Unlike_Successful() {
+        val artist = Artist(1L, "Artist Name")
+        val song = Song(id = 10L, title = "Song Title", durationSeconds = 180, artist = artist, songObjectName = "unique-song.mp3")
+        val user = User(id = 1L, username = "testuser", email = "test@example.com", password = "password")
+        user.likedSongs.add(song)
+
+        `when`(userRepository.findByUsername("testuser")).thenReturn(user)
+        `when`(songRepository.findById(10L)).thenReturn(Optional.of(song))
+
+        val isLiked = songService.toggleLikeSong(10L, "testuser")
+
+        assertFalse(isLiked)
+        assertFalse(user.likedSongs.contains(song))
+    }
+
+    @Test
+    fun getLikedSongs_Successful() {
+        val artist = Artist(1L, "Artist Name")
+        val song = Song(id = 10L, title = "Song Title", durationSeconds = 180, artist = artist, songObjectName = "unique-song.mp3")
+        val user = User(id = 1L, username = "testuser", email = "test@example.com", password = "password")
+
+        `when`(userRepository.findByUsername("testuser")).thenReturn(user)
+        `when`(songRepository.findLikedSongsByUserId(Mockito.eq(1L), any(Pageable::class.java) ?: PageRequest.of(0, 10)))
+            .thenReturn(PageImpl(listOf(song)))
+
+        val result = songService.getLikedSongs("testuser", 0, 10)
+
+        assertEquals(1, result.size)
+        assertEquals("Song Title", result[0].title)
+    }
+
+    @Test
+    fun getListeningHistory_Successful() {
+        val artist = Artist(1L, "Artist Name")
+        val song = Song(id = 10L, title = "Song Title", durationSeconds = 180, artist = artist, songObjectName = "unique-song.mp3")
+        val user = User(id = 1L, username = "testuser", email = "test@example.com", password = "password")
+        val history = ListeningHistory(id = 5L, user = user, song = song)
+
+        `when`(userRepository.findByUsername("testuser")).thenReturn(user)
+        `when`(listeningHistoryRepository.findByUserIdOrderByPlayedAtDesc(Mockito.eq(1L), any(Pageable::class.java) ?: PageRequest.of(0, 10)))
+            .thenReturn(PageImpl(listOf(history)))
+
+        val result = songService.getListeningHistory("testuser", 0, 10)
+
+        assertEquals(1, result.size)
+        assertEquals("Song Title", result[0].title)
     }
 }

@@ -39,4 +39,7 @@ interface SongRepository :JpaRepository<Song, Long> {
         @Param("playlistId") playlistId: Long,
         pageable: Pageable
     ): List<Song>
+
+    @Query("SELECT s FROM User u JOIN u.likedSongs s JOIN FETCH s.artist WHERE u.id = :userId")
+    fun findLikedSongsByUserId(@Param("userId") userId: Long, pageable: Pageable): Page<Song>
 }

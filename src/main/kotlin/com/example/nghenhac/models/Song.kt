@@ -34,4 +34,10 @@ class Song(
         fetch = FetchType.LAZY
     )
     val playlists: MutableList<Playlist> = mutableListOf()
-)
+) {
+    @Column(name = "play_count", nullable = false)
+    var playCount: Long = 0
+
+    @ManyToMany(mappedBy = "likedSongs", fetch = FetchType.LAZY)
+    val likedByUsers: MutableSet<User> = mutableSetOf()
+}

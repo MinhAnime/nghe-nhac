@@ -25,6 +25,15 @@ class User(
     )
     val playlists: List<Playlist> = emptyList()
 ) {
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_liked_songs",
+        joinColumns = [JoinColumn(name = "user_id")],
+        inverseJoinColumns = [JoinColumn(name = "song_id")]
+    )
+    val likedSongs: MutableSet<Song> = mutableSetOf()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is User) return false
