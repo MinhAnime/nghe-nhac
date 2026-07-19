@@ -8,7 +8,7 @@ services:
     container_name: nghenhac-app
     restart: always
     ports:
-      - "8086:8080" # Đổi host port từ 8080 thành 8086 để tránh trùng cổng với app khác trên Server
+      - "20080:8080" # Đổi host port từ 8080 thành 8086 để tránh trùng cổng với app khác trên Server
     env_file:
       - .env
     healthcheck:
