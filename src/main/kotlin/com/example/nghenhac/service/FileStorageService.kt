@@ -21,8 +21,8 @@ class FileStorageService(
     @Value("\${minio.bucket.covers}")
     private lateinit var coverBucket: String
 
-    @Value("\${minio.presigned-expiry-minutes}")
-    private var presignedExpiryMinutes: Int = 10
+    @Value("\${minio.presigned-expiry-minutes:10}")
+    private var presignedExpiryMinutes: Int = 0
 
     private fun uploadFile(file: MultipartFile, bucket: String): String {
         try {
