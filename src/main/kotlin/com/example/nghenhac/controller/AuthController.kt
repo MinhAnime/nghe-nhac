@@ -26,11 +26,4 @@ class AuthController(
         val loginResponse = authService.login(request)
         return ResponseEntity.ok(loginResponse)
     }
-
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleBadRequest(ex: IllegalArgumentException): ResponseEntity<Map<String, String>> {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(mapOf("error" to (ex.message ?: "Invalid request")))
-    }
 }

@@ -25,7 +25,8 @@ class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.toByteArray())
     }
 
-    private val expirationTimeMs: Long = 2_592_000_000
+    @Value("\${jwt.expiration-ms}")
+    private var expirationTimeMs: Long = 2_592_000_000
 
 
     fun generateToken(username: String): String {

@@ -110,24 +110,4 @@ class PlaylistController(
         val result = playlistService.togglePrivacy(playlistId, authentication.name)
         return ResponseEntity.ok(result)
     }
-
-    @ExceptionHandler(AccessDeniedException::class)
-    fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<Map<String, String>> {
-        return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body(mapOf("error" to (ex.message ?: "Không có quyền truy cập")))
-    }
-
-    @ExceptionHandler(EntityNotFoundException::class)
-    fun handleNotFound(ex: EntityNotFoundException): ResponseEntity<Map<String, String>> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(mapOf("error" to (ex.message ?: "Không tìm thấy tài nguyên")))
-    }
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleBadRequest(ex: IllegalArgumentException): ResponseEntity<Map<String, String>> {
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(mapOf("message" to (ex.message ?: "Lỗi không xác định")))
-    }
 }

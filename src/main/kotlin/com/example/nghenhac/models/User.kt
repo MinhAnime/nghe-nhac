@@ -1,11 +1,10 @@
 package com.example.nghenhac.models
 
 import jakarta.persistence.*
-import java.util.UUID
 
 @Entity
 @Table(name = "users")
-data class User(
+class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
@@ -25,4 +24,18 @@ data class User(
         fetch = FetchType.LAZY
     )
     val playlists: List<Playlist> = emptyList()
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is User) return false
+        return id != 0L && id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
+    override fun toString(): String {
+        return "User(id=$id, username='$username', email='$email')"
+    }
+}

@@ -67,19 +67,4 @@ class SongController(
             .build()
     }
 
-
-    @ExceptionHandler(EntityNotFoundException::class)
-    fun handleNotFound(ex: EntityNotFoundException): ResponseEntity<Map<String, String>> {
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(mapOf("error" to (ex.message ?: "Resource not found")))
-    }
-
-    @ExceptionHandler(RuntimeException::class)
-    fun handleRuntimeException(ex: RuntimeException): ResponseEntity<Map<String, String>> {
-
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(mapOf("error" to (ex.message ?: "An unexpected error occurred")))
-    }
 }

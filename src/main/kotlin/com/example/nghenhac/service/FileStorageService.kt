@@ -21,6 +21,9 @@ class FileStorageService(
     @Value("\${minio.bucket.covers}")
     private lateinit var coverBucket: String
 
+    @Value("\${minio.presigned-expiry-minutes}")
+    private var presignedExpiryMinutes: Int = 10
+
     private fun uploadFile(file: MultipartFile, bucket: String): String {
         try {
             // Sửa lỗi ghi đè bằng cách sử dụng UUID
@@ -57,7 +60,7 @@ class FileStorageService(
                 .method(Method.GET)
                 .bucket(bucket)
                 .`object`(objectName)
-                .expiry(10, TimeUnit.MINUTES)
+                .expiry(presignedExpiryMinutes, TimeUnit.MINUTES)
                 .build()
 
             return minioClient.getPresignedObjectUrl(args)
