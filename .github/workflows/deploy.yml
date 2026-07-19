@@ -19,7 +19,7 @@ env:
 jobs:
   deploy-app:
     name: Deploy nghe-nhac-app
-    runs-on: [self-hosted, linux, x64, nghe-nhac-app] # Sử dụng nhãn nghe-nhac-app riêng biệt cho dự án này
+    runs-on: [self-hosted, linux, x64] # Bỏ nhãn nghe-nhac-app để tự động khớp với runner online
     timeout-minutes: 30
 
     steps:
