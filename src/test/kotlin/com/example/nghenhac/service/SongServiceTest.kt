@@ -91,7 +91,7 @@ class SongServiceTest {
         val exception = assertThrows(EntityNotFoundException::class.java) {
             songService.createSong(dto, songFile, null)
         }
-        assertEquals("Artist không tồn tại với ID: 1", exception.message)
+        assertEquals("artist.not_found|1", exception.message)
     }
 
     @Test
@@ -119,7 +119,7 @@ class SongServiceTest {
         val exception = assertThrows(EntityNotFoundException::class.java) {
             songService.getSongStreamUrl(10L)
         }
-        assertEquals("Song không tồn tại với ID: 10", exception.message)
+        assertEquals("song.not_found|10", exception.message)
     }
 
     @Test

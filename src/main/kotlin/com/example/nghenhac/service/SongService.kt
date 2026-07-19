@@ -29,7 +29,7 @@ class SongService(
 
 
         val artist = artistRepository.findById(dto.artistId)
-            .orElseThrow { EntityNotFoundException("Artist không tồn tại với ID: ${dto.artistId}") }
+            .orElseThrow { EntityNotFoundException("artist.not_found|${dto.artistId}") }
 
         val songObjectName = fileStorageService.uploadSong(songFile)
 
@@ -55,7 +55,7 @@ class SongService(
 
     fun getSongStreamUrl(songId: Long, username: String? = null): String {
         val song = songRepository.findById(songId)
-            .orElseThrow { EntityNotFoundException("Song không tồn tại với ID: $songId") }
+            .orElseThrow { EntityNotFoundException("song.not_found|$songId") }
 
         // Tăng lượt nghe
         song.playCount++
@@ -78,7 +78,7 @@ class SongService(
 
     fun getSongDetails(songId: Long): SongResponseDTO {
         val song = songRepository.findById(songId)
-            .orElseThrow { EntityNotFoundException("Song không tồn tại với ID: $songId") }
+            .orElseThrow { EntityNotFoundException("song.not_found|$songId") }
 
         return mapToSongResponseDTO(song)
     }
@@ -107,9 +107,9 @@ class SongService(
 
     fun toggleLikeSong(songId: Long, username: String): Boolean {
         val user = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại")
+            ?: throw EntityNotFoundException("user.not_found")
         val song = songRepository.findById(songId)
-            .orElseThrow { EntityNotFoundException("Song không tồn tại với ID: $songId") }
+            .orElseThrow { EntityNotFoundException("song.not_found|$songId") }
 
         val isLiked = if (user.likedSongs.contains(song)) {
             user.likedSongs.remove(song)
@@ -124,7 +124,7 @@ class SongService(
 
     fun getLikedSongs(username: String, page: Int, size: Int): List<SongResponseDTO> {
         val user = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại")
+            ?: throw EntityNotFoundException("user.not_found")
         val pageable = PageRequest.of(page, size, Sort.by("id").descending())
         val likedSongsPage = songRepository.findLikedSongsByUserId(user.id!!, pageable)
         return likedSongsPage.content.map { mapToSongResponseDTO(it) }
@@ -132,7 +132,7 @@ class SongService(
 
     fun getListeningHistory(username: String, page: Int, size: Int): List<SongResponseDTO> {
         val user = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại")
+            ?: throw EntityNotFoundException("user.not_found")
         val pageable = PageRequest.of(page, size)
         val historyPage = listeningHistoryRepository.findByUserIdOrderByPlayedAtDesc(user.id!!, pageable)
         return historyPage.content.map { mapToSongResponseDTO(it.song) }

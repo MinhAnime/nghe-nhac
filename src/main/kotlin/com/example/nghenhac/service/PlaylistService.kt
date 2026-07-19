@@ -24,7 +24,7 @@ class PlaylistService(
     fun createPlaylist(request: CreatePlaylistRequestDTO, username: String): PlaylistResponseDTO {
 
         val owner = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại.")
+            ?: throw EntityNotFoundException("user.not_found")
 
 
         val baseName = request.name
@@ -57,14 +57,14 @@ class PlaylistService(
 
     fun deletePlaylist(playlistId: Long, username: String) {
         val playlist = playlistRepository.findById(playlistId)
-            .orElseThrow { EntityNotFoundException("Playlist không tồn tại") }
+            .orElseThrow { EntityNotFoundException("playlist.not_found") }
 
         val currentUser = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại")
+            ?: throw EntityNotFoundException("user.not_found")
 
         // Kiểm tra quyền sở hữu
         if (playlist.owner.id != currentUser.id) {
-            throw AccessDeniedException("Bạn không có quyền xóa playlist này")
+            throw AccessDeniedException("playlist.delete_denied")
         }
 
         playlistRepository.delete(playlist)
@@ -72,32 +72,32 @@ class PlaylistService(
     fun removeSongFromPlaylist(playlistId: Long, songId: Long, username: String) {
         // Fetch playlist kèm songs để thao tác
         val playlist = playlistRepository.findPlaylistWithSongsAndArtistsById(playlistId)
-            ?: throw EntityNotFoundException("Playlist không tồn tại.")
+            ?: throw EntityNotFoundException("playlist.not_found")
 
         val currentUser = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại.")
+            ?: throw EntityNotFoundException("user.not_found")
 
         if (playlist.owner.id != currentUser.id) {
-            throw AccessDeniedException("Bạn không có quyền sửa playlist này.")
+            throw AccessDeniedException("playlist.edit_denied")
         }
 
         // Tìm bài hát trong danh sách hiện tại
         // tìm trong playlist.songs
         val songToRemove = playlist.songs.find { it.id == songId }
-            ?: throw EntityNotFoundException("Bài hát không có trong playlist này.")
+            ?: throw EntityNotFoundException("playlist.song_not_found")
 
         playlist.songs.remove(songToRemove)
         playlistRepository.save(playlist)
     }
     fun renamePlaylist(playlistId: Long, newName: String, username: String): PlaylistResponseDTO {
         val playlist = playlistRepository.findById(playlistId)
-            .orElseThrow { EntityNotFoundException("Playlist không tồn tại") }
+            .orElseThrow { EntityNotFoundException("playlist.not_found") }
 
         val currentUser = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại")
+            ?: throw EntityNotFoundException("user.not_found")
 
         if (playlist.owner.id != currentUser.id) {
-            throw AccessDeniedException("Bạn không có quyền sửa playlist này")
+            throw AccessDeniedException("playlist.edit_denied")
         }
 
         playlist.name = newName
@@ -109,22 +109,22 @@ class PlaylistService(
     fun addSongToPlaylist(playlistId: Long, songId: Long, username: String): PlaylistResponseDTO {
 
         val playlist = playlistRepository.findPlaylistWithSongsAndArtistsById(playlistId)
-            ?: throw EntityNotFoundException("Playlist không tồn tại.")
+            ?: throw EntityNotFoundException("playlist.not_found")
 
         val currentUser = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại.")
+            ?: throw EntityNotFoundException("user.not_found")
 
 
         if (playlist.owner.id != currentUser.id) {
-            throw AccessDeniedException("Bạn không có quyền thêm bài hát vào playlist này.")
+            throw AccessDeniedException("playlist.edit_denied")
         }
 
 
         val song = songRepository.findById(songId)
-            .orElseThrow { EntityNotFoundException("Bài hát không tồn tại.") }
+            .orElseThrow { EntityNotFoundException("song.not_found") }
 
         if (playlist.songs.contains(song)) {
-            throw IllegalArgumentException("Bài hát đã có trong playlist.")
+            throw IllegalArgumentException("song.already_in_playlist")
         }
 
         playlist.songs.add(song)
@@ -139,7 +139,7 @@ class PlaylistService(
 
     fun getMyPlaylists(username: String, page: Int, size: Int): List<PlaylistSummaryDTO> {
         val owner = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại.")
+            ?: throw EntityNotFoundException("user.not_found")
 
         val pageable = PageRequest.of(page, size, Sort.by("id").descending())
         val playlistPage = playlistRepository.findPlaylistsByOwnerId(owner.id!!, pageable)
@@ -149,15 +149,15 @@ class PlaylistService(
     fun getPlaylistDetails(playlistId: Long, requesterUsername: String): PlaylistDetailDTO {
 
         val playlist = playlistRepository.findPlaylistWithSongsAndArtistsById(playlistId)
-            ?: throw EntityNotFoundException("Playlist không tồn tại.")
+            ?: throw EntityNotFoundException("playlist.not_found")
 
         val requester = userRepository.findByUsername(requesterUsername)
-            ?: throw EntityNotFoundException("User không tồn tại.")
+            ?: throw EntityNotFoundException("user.not_found")
 
         val isOwner = playlist.owner.id == requester.id
 
         if (!isOwner && !playlist.isPublic) {
-            throw AccessDeniedException("Playlist này là riêng tư. Bạn không có quyền xem.")
+            throw AccessDeniedException("playlist.access_denied")
         }
 
         return mapToPlaylistDetailDTO(playlist)
@@ -165,14 +165,14 @@ class PlaylistService(
 
     fun togglePrivacy(playlistId: Long, username: String): PlaylistResponseDTO {
         val playlist = playlistRepository.findById(playlistId)
-            .orElseThrow { EntityNotFoundException("Playlist không tồn tại.") }
+            .orElseThrow { EntityNotFoundException("playlist.not_found") }
 
         val currentUser = userRepository.findByUsername(username)
-            ?: throw EntityNotFoundException("User không tồn tại.")
+            ?: throw EntityNotFoundException("user.not_found")
 
         // Chỉ chủ sở hữu mới được đổi
         if (playlist.owner.id != currentUser.id) {
-            throw AccessDeniedException("Bạn không có quyền chỉnh sửa playlist này.")
+            throw AccessDeniedException("playlist.edit_denied")
         }
 
         // Đảo ngược trạng thái (True <-> False)

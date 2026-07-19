@@ -18,10 +18,10 @@ class AuthService(
 
     fun register(request: RegisterRequestDTO): UserResponseDTO {
         if (userRepository.findByUsername(request.username) != null) {
-            throw IllegalArgumentException("Username đã tồn tại")
+            throw IllegalArgumentException("auth.username.exists")
         }
         if (userRepository.findByEmail(request.email) != null) {
-            throw IllegalArgumentException("Email đã tồn tại")
+            throw IllegalArgumentException("auth.email.exists")
         }
 
 
@@ -42,11 +42,11 @@ class AuthService(
     fun login(request: LoginRequestDTO): LoginResponseDTO {
 
         val user = userRepository.findByUsername(request.username)
-            ?: throw IllegalArgumentException("Username hoặc mật khẩu không đúng")
+            ?: throw IllegalArgumentException("auth.bad_credentials")
 
 
         if (!passwordEncoder.matches(request.pass, user.password)) {
-            throw IllegalArgumentException("Username hoặc mật khẩu không đúng")
+            throw IllegalArgumentException("auth.bad_credentials")
         }
 
 

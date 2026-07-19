@@ -54,7 +54,7 @@ class AuthServiceTest {
         val exception = assertThrows(IllegalArgumentException::class.java) {
             authService.register(request)
         }
-        assertEquals("Username đã tồn tại", exception.message)
+        assertEquals("auth.username.exists", exception.message)
     }
 
     @Test
@@ -67,7 +67,7 @@ class AuthServiceTest {
         val exception = assertThrows(IllegalArgumentException::class.java) {
             authService.register(request)
         }
-        assertEquals("Email đã tồn tại", exception.message)
+        assertEquals("auth.email.exists", exception.message)
     }
 
     @Test
@@ -94,7 +94,7 @@ class AuthServiceTest {
         val exception = assertThrows(IllegalArgumentException::class.java) {
             authService.login(request)
         }
-        assertEquals("Username hoặc mật khẩu không đúng", exception.message)
+        assertEquals("auth.bad_credentials", exception.message)
     }
 
     @Test
@@ -107,6 +107,6 @@ class AuthServiceTest {
         val exception = assertThrows(IllegalArgumentException::class.java) {
             authService.login(request)
         }
-        assertEquals("Username hoặc mật khẩu không đúng", exception.message)
+        assertEquals("auth.bad_credentials", exception.message)
     }
 }
