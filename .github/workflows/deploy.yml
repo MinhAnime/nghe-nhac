@@ -1,0 +1,73 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [master]  # Kích hoạt khi push hoặc merge vào nhánh master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nghenhac-production-deployment
+  cancel-in-progress: false
+
+env:
+  DEPLOY_ROOT: /home/minhduong/nghe-nhac
+  DEPLOY_SHA: ${{ github.sha }}
+
+jobs:
+  deploy-app:
+    name: Deploy nghe-nhac-app
+    runs-on: [self-hosted, linux, x64, documind-app] # Deploy lên Server 1 sử dụng runner documind-app
+    timeout-minutes: 30
+
+    steps:
+      - name: Update repository to the tested commit
+        id: revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Nếu thư mục gốc chưa tồn tại thì clone về, nếu có rồi thì fetch
+          if [ ! -d "$DEPLOY_ROOT" ]; then
+            git clone ${{ github.server_url }}/${{ github.repository }}.git "$DEPLOY_ROOT"
+          fi
+          
+          cd "$DEPLOY_ROOT"
+          git fetch origin master
+
+          remote_sha="$(git rev-parse origin/master)"
+          if [[ "$remote_sha" != "$DEPLOY_SHA" ]]; then
+            echo "A newer master commit exists; skipping obsolete deployment $DEPLOY_SHA."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git checkout master
+          git merge --ff-only "$DEPLOY_SHA"
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+
+      - name: Validate application stack
+        if: steps.revision.outputs.deploy == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_ROOT"
+          docker compose config --quiet
+
+      - name: Deploy application stack
+        if: steps.revision.outputs.deploy == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$DEPLOY_ROOT"
+          # Thực hiện build và chạy container qua docker-compose.yml
+          docker compose up -d --build --remove-orphans --wait --wait-timeout 600
+
+      - name: Verify application services
+        if: steps.revision.outputs.deploy == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Kiểm tra trạng thái hoạt động (Actuator health check) tại cổng 8086 của Host
+          curl --fail --silent --show-error http://127.0.0.1:8086/actuator/health
