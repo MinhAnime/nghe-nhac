@@ -1,22 +1,26 @@
-version: '3.8'
+  version: '3.8'
 
-services:
-  nghenhac-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: nghenhac-app
-    restart: always
-    ports:
-      - "20080:8080" # Đổi host port từ 8080 thành 8086 để tránh trùng cổng với app khác trên Server
-    env_file:
-      - .env
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:20080/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+  services:
+    nghenhac-app:
+      build:
+        context: .
+        dockerfile: Dockerfile
 
+      container_name: nghenhac-app
+      restart: always
+
+      ports:
+        - "20080:8080"
+
+      env_file:
+        - .env
+
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 30s
+
+      extra_hosts:
+        - "host.docker.internal:host-gateway"

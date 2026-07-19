@@ -2,7 +2,8 @@ name: Deploy production
 
 on:
   push:
-    branches: [master]  # Kích hoạt khi push hoặc merge vào nhánh master
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
@@ -19,55 +20,119 @@ env:
 jobs:
   deploy-app:
     name: Deploy nghe-nhac-app
-    runs-on: [self-hosted, linux, x64] # Bỏ nhãn nghe-nhac-app để tự động khớp với runner online
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 30
 
     steps:
-      - name: Update repository to the tested commit
+      - name: Prepare repository
         id: revision
         shell: bash
         run: |
           set -euo pipefail
-          # Nếu thư mục gốc chưa tồn tại thì clone về, nếu có rồi thì fetch
-          if [ ! -d "$DEPLOY_ROOT" ]; then
-            git clone ${{ github.server_url }}/${{ github.repository }}.git "$DEPLOY_ROOT"
-          fi
-          
-          cd "$DEPLOY_ROOT"
-          git fetch origin master
 
-          remote_sha="$(git rev-parse origin/master)"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}.git"
+
+          if [ ! -d "$DEPLOY_ROOT/.git" ]; then
+            echo "Repository not found. Cloning..."
+            git clone "$REPO_URL" "$DEPLOY_ROOT"
+          fi
+
+          cd "$DEPLOY_ROOT"
+
+          git fetch --prune origin
+
+          remote_sha=$(git rev-parse origin/master)
+
           if [[ "$remote_sha" != "$DEPLOY_SHA" ]]; then
-            echo "A newer master commit exists; skipping obsolete deployment $DEPLOY_SHA."
+            echo "A newer commit exists on master."
+            echo "Skip obsolete deployment."
+
             echo "deploy=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          git checkout master
-          git merge --ff-only "$DEPLOY_SHA"
+          git reset --hard "$DEPLOY_SHA"
+          git clean -fd
+
           echo "deploy=true" >> "$GITHUB_OUTPUT"
 
-      - name: Validate application stack
+      - name: Show deployed revision
+        if: steps.revision.outputs.deploy == 'true'
+        shell: bash
+        run: |
+          cd "$DEPLOY_ROOT"
+          echo "Deploying commit:"
+          git log -1 --oneline
+
+      - name: Validate Docker Compose
         if: steps.revision.outputs.deploy == 'true'
         shell: bash
         run: |
           set -euo pipefail
           cd "$DEPLOY_ROOT"
+
           docker compose config --quiet
 
-      - name: Deploy application stack
+      - name: Build Docker images
         if: steps.revision.outputs.deploy == 'true'
         shell: bash
         run: |
           set -euo pipefail
           cd "$DEPLOY_ROOT"
-          # Thực hiện build và chạy container qua docker-compose.yml
-          docker compose up -d --build --remove-orphans --wait --wait-timeout 600
 
-      - name: Verify application services
+          docker compose build
+
+      - name: Deploy containers
         if: steps.revision.outputs.deploy == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          # Kiểm tra trạng thái hoạt động (Actuator health check) tại cổng 8086 của Host
-          curl --fail --silent --show-error http://127.0.0.1:20080/actuator/health
+          cd "$DEPLOY_ROOT"
+
+          docker compose up \
+            -d \
+            --remove-orphans \
+            --wait \
+            --wait-timeout 600
+
+      - name: Verify application health
+        if: steps.revision.outputs.deploy == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for Spring Boot..."
+
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:20080/actuator/health >/dev/null; then
+              echo "Application is UP"
+              exit 0
+            fi
+
+            sleep 5
+          done
+
+          echo "Health check failed."
+          exit 1
+
+      - name: Show Docker status
+        if: always()
+        shell: bash
+        run: |
+          cd "$DEPLOY_ROOT"
+
+          docker compose ps
+
+      - name: Dump Docker logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          cd "$DEPLOY_ROOT"
+
+          docker compose logs --tail=300
+
+      - name: Cleanup dangling images
+        if: always()
+        shell: bash
+        run: |
+          docker image prune -f
