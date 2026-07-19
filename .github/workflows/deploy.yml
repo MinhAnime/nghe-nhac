@@ -70,4 +70,4 @@ jobs:
         run: |
           set -euo pipefail
           # Kiểm tra trạng thái hoạt động (Actuator health check) tại cổng 8086 của Host
-          curl --fail --silent --show-error http://127.0.0.1:8086/actuator/health
+          curl --fail --silent --show-error http://127.0.0.1:20080/actuator/health
