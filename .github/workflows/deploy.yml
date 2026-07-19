@@ -19,7 +19,7 @@ env:
 jobs:
   deploy-app:
     name: Deploy nghe-nhac-app
-    runs-on: [self-hosted, linux, x64, documind-app] # Deploy lên Server 1 sử dụng runner documind-app
+    runs-on: [self-hosted, linux, x64, nghe-nhac-app] # Sử dụng nhãn nghe-nhac-app riêng biệt cho dự án này
     timeout-minutes: 30
 
     steps:
