@@ -7,5 +7,5 @@ data class SongResponseDTO(
     val title: String,
     val durationSeconds: Int,
     val artistName: String,
-    val coverArtUrl: String? // URL đầy đủ, không phải objectName
+    val coverArtUrl: String?
 )

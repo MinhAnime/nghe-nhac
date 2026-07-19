@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nghe Nhạc - Premium Uploader Tool</title>
+    <!-- Nhúng Google Font 'Outfit' để giao diện hiện đại -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #a855f7;
+            --primary-glow: rgba(168, 85, 247, 0.4);
+            --secondary: #6366f1;
+            --background: #090514;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 50%, #1e1145 0%, var(--background) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            color: var(--text-main);
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Hiệu ứng Glassmorphism */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(135deg, #e9d5ff 0%, #c7d2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e9d5ff;
+        }
+
+        .badge-step {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Custom File Input Zone */
+        .file-drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.01);
+            position: relative;
+        }
+
+        .file-drop-zone:hover {
+            border-color: var(--secondary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .file-drop-zone p {
+            font-size: 14px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .file-drop-zone strong {
+            color: var(--text-main);
+        }
+
+        .file-drop-zone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-preview {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            cursor: pointer;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+            filter: brightness(1.1);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Status & Alert logs */
+        .status-box {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .status-box.info {
+            display: block;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+        }
+
+        .status-box.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #a7f3d0;
+        }
+
+        .status-box.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        /* Image cover preview */
+        #coverPreviewContainer {
+            margin-top: 15px;
+            display: none;
+            justify-content: center;
+        }
+
+        #coverPreview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="margin-bottom: 10px;">
+        <h1>Nghe Nhạc Uploader</h1>
+        <div class="subtitle">Công cụ tải lên bài hát tự động trích xuất thời lượng trên Client</div>
+    </div>
+
+    <!-- BƯỚC 1: ĐĂNG NHẬP -->
+    <div class="glass-card">
+        <h2><span class="badge-step">1</span>Đăng nhập hệ thống</h2>
+        <div class="form-group">
+            <label>Tên tài khoản (Username)</label>
+            <input type="text" id="username" placeholder="Nhập tên đăng nhập...">
+        </div>
+        <div class="form-group">
+            <label>Mật khẩu (Password)</label>
+            <input type="password" id="password" placeholder="Nhập mật khẩu...">
+        </div>
+        <button onclick="handleLogin()">Đăng Nhập</button>
+        <div id="loginStatus" class="status-box"></div>
+    </div>
+
+    <!-- BƯỚC 2: TẢI LÊN BÀI HÁT -->
+    <div class="glass-card">
+        <h2><span class="badge-step">2</span>Thông tin bài hát tải lên</h2>
+        
+        <div class="form-group">
+            <label>Tên bài hát</label>
+            <input type="text" id="title" placeholder="Nhập tên bài hát...">
+        </div>
+
+        <div class="form-group">
+            <label>ID Ca sĩ (Artist ID)</label>
+            <input type="number" id="artistId" value="1">
+        </div>
+
+        <!-- Chọn File Nhạc -->
+        <div class="form-group">
+            <label>File Nhạc (Audio File)</label>
+            <div class="file-drop-zone">
+                <p>Kéo thả hoặc click để chọn file <strong>MP3 / WAV / M4A</strong></p>
+                <input type="file" id="songFile" accept="audio/*" onchange="previewSongFile()">
+            </div>
+            <div id="songFilePreview" class="file-preview"></div>
+        </div>
+
+        <!-- Chọn Ảnh Bìa (Cover File) - Tùy chọn -->
+        <div class="form-group">
+            <label>Ảnh bìa bài hát (Cover Art - Tùy chọn)</label>
+            <div class="file-drop-zone">
+                <p>Kéo thả hoặc click để chọn file <strong>Hình ảnh</strong></p>
+                <input type="file" id="coverFile" accept="image/*" onchange="previewCoverFile()">
+            </div>
+            <div id="coverFilePreview" class="file-preview"></div>
+            <div id="coverPreviewContainer">
+                <img id="coverPreview" src="" alt="Cover Preview">
+            </div>
+        </div>
+
+        <button onclick="handleUpload()">Tải Lên Bài Hát</button>
+        <div id="status" class="status-box"></div>
+    </div>
+</div>
+
+<script>
+    let jwtToken = ""; // Lưu trữ JWT Token
+
+    // Hiển thị tên file nhạc khi chọn
+    function previewSongFile() {
+        const fileInput = document.getElementById('songFile');
+        const preview = document.getElementById('songFilePreview');
+        if (fileInput.files.length > 0) {
+            preview.innerText = `🎵 Đã chọn: ${fileInput.files[0].name} (${(fileInput.files[0].size / (1024*1024)).toFixed(2)} MB)`;
+        } else {
+            preview.innerText = "";
+        }
+    }
+
+    // Hiển thị ảnh xem trước khi chọn ảnh bìa
+    function previewCoverFile() {
+        const fileInput = document.getElementById('coverFile');
+        const preview = document.getElementById('coverFilePreview');
+        const previewContainer = document.getElementById('coverPreviewContainer');
+        const previewImg = document.getElementById('coverPreview');
+
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            preview.innerText = `🖼️ Ảnh bìa: ${file.name}`;
+            previewContainer.style.display = "flex";
+            previewImg.src = URL.createObjectURL(file);
+        } else {
+            preview.innerText = "";
+            previewContainer.style.display = "none";
+            previewImg.src = "";
+        }
+    }
+
+    // Xử lý đăng nhập
+    function handleLogin() {
+        const username = document.getElementById('username').value;
+        const pass = document.getElementById('password').value; // Khớp với trường pass trong LoginRequestDTO
+        const loginStatus = document.getElementById('loginStatus');
+
+        if (!username || !pass) {
+            alert("Vui lòng điền đầy đủ tài khoản và mật khẩu!");
+            return;
+        }
+
+        loginStatus.className = "status-box info";
+        loginStatus.innerText = "🔄 Đang đăng nhập...";
+
+        fetch("http://localhost:8080/api/v1/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, pass })
+        })
+        .then(response => {
+            if (response.ok) return response.json();
+            throw new Error("❌ Đăng nhập thất bại! Kiểm tra lại tài khoản hoặc mật khẩu.");
+        })
+        .then(data => {
+            jwtToken = data.token;
+            loginStatus.className = "status-box success";
+            loginStatus.innerText = `✅ Đăng nhập thành công! Chào mừng, ${data.user.username}.`;
+        })
+        .catch(err => {
+            loginStatus.className = "status-box error";
+            loginStatus.innerText = err.message;
+        });
+    }
+
+    // Xử lý upload
+    function handleUpload() {
+        const title = document.getElementById('title').value;
+        const artistId = document.getElementById('artistId').value;
+        const songFile = document.getElementById('songFile').files[0];
+        const coverFile = document.getElementById('coverFile').files[0];
+        const statusDiv = document.getElementById('status');
+
+        if (!jwtToken) {
+            alert("Vui lòng đăng nhập trước khi tải nhạc lên!");
+            return;
+        }
+        if (!title || !songFile) {
+            alert("Vui lòng nhập tên bài hát và chọn file nhạc!");
+            return;
+        }
+
+        statusDiv.className = "status-box info";
+        statusDiv.innerText = "⏳ Đang tính toán thời lượng bài hát trên máy của bạn...";
+
+        // Tính toán thời lượng bài hát sử dụng trình duyệt Web Audio API/Audio element trên client
+        const audio = document.createElement('audio');
+        audio.src = URL.createObjectURL(songFile);
+
+        audio.onloadedmetadata = function() {
+            const durationSeconds = Math.round(audio.duration); // Số giây chính xác tính từ máy client
+            statusDiv.innerText = `⚡ Tính xong thời lượng: ${durationSeconds} giây. Đang bắt đầu tải lên...`;
+
+            // Chuẩn bị FormData để gửi multipart/form-data
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("duration", durationSeconds);
+            formData.append("artistId", artistId);
+            formData.append("songFile", songFile);
+            
+            // Đính kèm ảnh bìa nếu được chọn
+            if (coverFile) {
+                formData.append("coverFile", coverFile);
+            }
+
+            fetch("http://localhost:8080/api/v1/songs/upload", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${jwtToken}`
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.status === 201) {
+                    statusDiv.className = "status-box success";
+                    statusDiv.innerText = `🎉 Tải lên thành công! Bài hát "${title}" đã được lưu trữ (Thời lượng: ${durationSeconds}s).`;
+                } else {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+            })
+            .catch(err => {
+                statusDiv.className = "status-box error";
+                statusDiv.innerText = "❌ Lỗi tải lên: " + err.message;
+            });
+        };
+
+        audio.onerror = function() {
+            statusDiv.className = "status-box error";
+            statusDiv.innerText = "❌ Lỗi đọc file âm thanh. Vui lòng kiểm tra lại định dạng file nhạc của bạn.";
+        };
+    }
+</script>
+
+</body>
+</html>
