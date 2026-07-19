@@ -127,7 +127,7 @@
             color: var(--text-muted);
         }
 
-        input[type="text"], input[type="password"], input[type="number"] {
+        input[type="text"], input[type="password"], input[type="number"], input[type="email"] {
             width: 100%;
             padding: 12px 16px;
             background: rgba(0, 0, 0, 0.2);
@@ -138,7 +138,7 @@
             outline: none;
         }
 
-        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="email"]:focus {
             border-color: var(--primary);
             box-shadow: 0 0 10px var(--primary-glow);
             background: rgba(0, 0, 0, 0.3);
@@ -257,33 +257,129 @@
             border-radius: 8px;
             border: 1px solid var(--card-border);
         }
+
+        /* Lớp phủ mờ khi chưa đăng nhập */
+        .glass-card.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .glass-card.disabled::after {
+            content: '🔒 Vui lòng đăng nhập để mở khóa tính năng tải lên';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(9, 5, 20, 0.75);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e9d5ff;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 20px;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* CSS cho liên kết chuyển đổi Đăng nhập / Đăng ký */
+        .auth-toggle-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .auth-toggle-link strong {
+            color: var(--primary);
+            transition: color 0.2s;
+        }
+        .auth-toggle-link:hover strong {
+            text-decoration: underline;
+            color: #c7d2fe;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="margin-bottom: 10px;">
-        <h1>Nghe Nhạc Uploader</h1>
-        <div class="subtitle">Công cụ tải lên bài hát tự động trích xuất thời lượng trên Client</div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="flex: 1; min-width: 250px;">
+                <h1>Nghe Nhạc Uploader</h1>
+                <div class="subtitle" style="margin-bottom: 0; text-align: left;">Công cụ tải lên bài hát tự động trích xuất thời lượng trên Client</div>
+            </div>
+            <!-- API Configuration -->
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                <label style="margin-bottom: 0; font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">API Server</label>
+                <input type="text" id="apiServerUrl" style="width: 220px; padding: 8px 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: #a855f7; font-size: 13px; font-family: monospace; outline: none; font-weight: 600;" placeholder="http://api.minhduong.id.vn">
+            </div>
+        </div>
     </div>
 
-    <!-- BƯỚC 1: ĐĂNG NHẬP -->
+    <!-- BƯỚC 1: ĐĂNG NHẬP / ĐĂNG KÝ / THÔNG TIN TÀI KHOẢN -->
     <div class="glass-card">
-        <h2><span class="badge-step">1</span>Đăng nhập hệ thống</h2>
-        <div class="form-group">
-            <label>Tên tài khoản (Username)</label>
-            <input type="text" id="username" placeholder="Nhập tên đăng nhập...">
+        <!-- Form đăng nhập khi chưa đăng nhập -->
+        <div id="loginFormSection">
+            <h2><span class="badge-step">1</span>Đăng nhập hệ thống</h2>
+            <div class="form-group">
+                <label>Tên tài khoản (Username)</label>
+                <input type="text" id="username" placeholder="Nhập tên đăng nhập...">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu (Password)</label>
+                <input type="password" id="password" placeholder="Nhập mật khẩu...">
+            </div>
+            <button onclick="handleLogin()">Đăng Nhập</button>
+            <a class="auth-toggle-link" onclick="toggleAuthMode('register')">Chưa có tài khoản? <strong>Đăng ký ngay</strong></a>
         </div>
-        <div class="form-group">
-            <label>Mật khẩu (Password)</label>
-            <input type="password" id="password" placeholder="Nhập mật khẩu...">
+
+        <!-- Form đăng ký khi chưa có tài khoản -->
+        <div id="registerFormSection" style="display: none;">
+            <h2><span class="badge-step">1</span>Đăng ký tài khoản</h2>
+            <div class="form-group">
+                <label>Tên tài khoản (Username)</label>
+                <input type="text" id="regUsername" placeholder="Nhập tên tài khoản muốn tạo...">
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ Email (Email)</label>
+                <input type="email" id="regEmail" placeholder="example@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu (Password)</label>
+                <input type="password" id="regPassword" placeholder="Nhập mật khẩu...">
+            </div>
+            <button onclick="handleRegister()">Đăng Ký</button>
+            <a class="auth-toggle-link" onclick="toggleAuthMode('login')">Đã có tài khoản? <strong>Đăng nhập</strong></a>
         </div>
-        <button onclick="handleLogin()">Đăng Nhập</button>
+
+        <!-- Dashboard tài khoản khi đã đăng nhập thành công -->
+        <div id="userInfoSection" style="display: none;">
+            <h2><span class="badge-step">1</span>Tài khoản của bạn</h2>
+            <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
+                <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; text-transform: uppercase; color: white; box-shadow: 0 0 10px var(--primary-glow);">
+                    <span id="userAvatarChar">U</span>
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #f3f4f6;" id="displayUsername">Username</div>
+                    <div style="font-size: 13px; color: var(--text-muted);" id="displayEmail">email@example.com</div>
+                </div>
+            </div>
+            <button onclick="handleLogout()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; font-size: 14px; padding: 10px; box-shadow: none;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'">Đăng Xuất</button>
+        </div>
+
         <div id="loginStatus" class="status-box"></div>
     </div>
 
     <!-- BƯỚC 2: TẢI LÊN BÀI HÁT -->
-    <div class="glass-card">
+    <div class="glass-card" id="uploadSectionCard">
         <h2><span class="badge-step">2</span>Thông tin bài hát tải lên</h2>
         
         <div class="form-group">
@@ -325,7 +421,96 @@
 </div>
 
 <script>
-    let jwtToken = ""; // Lưu trữ JWT Token
+    // 1. Quản lý cấu hình API Endpoint
+    const defaultApiUrl = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+        ? 'http://localhost:8080'
+        : 'https://api.minhduong.id.vn';
+
+    let currentApiUrl = localStorage.getItem('apiServerUrl') || defaultApiUrl;
+    
+    // Tự động nâng cấp lên HTTPS nếu đang lưu http://api.minhduong.id.vn để tránh lỗi CORS do redirect
+    if (currentApiUrl === 'http://api.minhduong.id.vn') {
+        currentApiUrl = 'https://api.minhduong.id.vn';
+        localStorage.setItem('apiServerUrl', currentApiUrl);
+    }
+    
+    // Đồng bộ lên UI
+    const apiServerUrlInput = document.getElementById('apiServerUrl');
+    if (apiServerUrlInput) {
+        apiServerUrlInput.value = currentApiUrl;
+        apiServerUrlInput.addEventListener('input', function(e) {
+            currentApiUrl = e.target.value.trim() || defaultApiUrl;
+            localStorage.setItem('apiServerUrl', currentApiUrl);
+        });
+    }
+
+    // 2. Trạng thái Đăng Nhập
+    let jwtToken = localStorage.getItem('jwtToken') || "";
+    let userInfo = null;
+    try {
+        const savedUser = localStorage.getItem('userInfo');
+        if (savedUser) {
+            userInfo = JSON.parse(savedUser);
+        }
+    } catch (e) {
+        console.error("Lỗi khi parse userInfo từ localStorage", e);
+    }
+
+    // Cập nhật giao diện Đăng Nhập & Upload
+    function updateAuthState() {
+        const loginFormSection = document.getElementById('loginFormSection');
+        const registerFormSection = document.getElementById('registerFormSection');
+        const userInfoSection = document.getElementById('userInfoSection');
+        const uploadSectionCard = document.getElementById('uploadSectionCard');
+        const loginStatus = document.getElementById('loginStatus');
+
+        if (jwtToken && userInfo) {
+            // Đã đăng nhập
+            loginFormSection.style.display = 'none';
+            registerFormSection.style.display = 'none';
+            userInfoSection.style.display = 'block';
+            
+            document.getElementById('displayUsername').innerText = userInfo.username;
+            document.getElementById('displayEmail').innerText = userInfo.email || 'Không có email';
+            document.getElementById('userAvatarChar').innerText = userInfo.username.charAt(0).toUpperCase();
+            
+            loginStatus.className = "status-box success";
+            loginStatus.innerText = `✅ Đã đăng nhập dưới tên: ${userInfo.username}`;
+            loginStatus.style.display = "block";
+            
+            uploadSectionCard.classList.remove('disabled');
+        } else {
+            // Chưa đăng nhập
+            loginFormSection.style.display = 'block';
+            registerFormSection.style.display = 'none';
+            userInfoSection.style.display = 'none';
+            loginStatus.style.display = 'none';
+            
+            uploadSectionCard.classList.add('disabled');
+        }
+    }
+
+    // Chuyển đổi qua lại giữa Đăng nhập / Đăng ký
+    function toggleAuthMode(mode) {
+        const loginFormSection = document.getElementById('loginFormSection');
+        const registerFormSection = document.getElementById('registerFormSection');
+        const loginStatus = document.getElementById('loginStatus');
+
+        loginStatus.style.display = 'none'; // Ẩn thông báo cũ khi chuyển form
+
+        if (mode === 'register') {
+            loginFormSection.style.display = 'none';
+            registerFormSection.style.display = 'block';
+            
+            // Xóa form cũ
+            document.getElementById('regUsername').value = "";
+            document.getElementById('regEmail').value = "";
+            document.getElementById('regPassword').value = "";
+        } else {
+            loginFormSection.style.display = 'block';
+            registerFormSection.style.display = 'none';
+        }
+    }
 
     // Hiển thị tên file nhạc khi chọn
     function previewSongFile() {
@@ -357,10 +542,68 @@
         }
     }
 
+    // Xử lý đăng ký tài khoản
+    function handleRegister() {
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const pass = document.getElementById('regPassword').value;
+        const loginStatus = document.getElementById('loginStatus');
+
+        if (!username || !email || !pass) {
+            alert("Vui lòng nhập đầy đủ thông tin để đăng ký!");
+            return;
+        }
+
+        // Email validation cơ bản
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert("Định dạng email không hợp lệ!");
+            return;
+        }
+
+        loginStatus.className = "status-box info";
+        loginStatus.innerText = "🔄 Đang đăng ký tài khoản...";
+        loginStatus.style.display = "block";
+
+        fetch(`${currentApiUrl}/api/v1/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, pass })
+        })
+        .then(response => {
+            if (response.ok) return response.json();
+            return response.json().then(errData => {
+                const msg = errData.error || errData.message || "Đăng ký thất bại.";
+                throw new Error(msg);
+            }).catch(e => {
+                throw new Error(e.message || "❌ Lỗi kết nối tới máy chủ.");
+            });
+        })
+        .then(data => {
+            loginStatus.className = "status-box success";
+            loginStatus.innerText = `🎉 Đăng ký thành công tài khoản "${data.username}"! Đang chuyển sang đăng nhập...`;
+            loginStatus.style.display = "block";
+
+            // Điền sẵn tên đăng nhập
+            document.getElementById('username').value = data.username;
+            document.getElementById('password').value = "";
+
+            setTimeout(() => {
+                toggleAuthMode('login');
+                document.getElementById('password').focus();
+            }, 1800);
+        })
+        .catch(err => {
+            loginStatus.className = "status-box error";
+            loginStatus.innerText = err.message;
+            loginStatus.style.display = "block";
+        });
+    }
+
     // Xử lý đăng nhập
     function handleLogin() {
-        const username = document.getElementById('username').value;
-        const pass = document.getElementById('password').value; // Khớp với trường pass trong LoginRequestDTO
+        const username = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
         const loginStatus = document.getElementById('loginStatus');
 
         if (!username || !pass) {
@@ -370,25 +613,51 @@
 
         loginStatus.className = "status-box info";
         loginStatus.innerText = "🔄 Đang đăng nhập...";
+        loginStatus.style.display = "block";
 
-        fetch("http://localhost:8080/api/v1/auth/login", {
+        fetch(`${currentApiUrl}/api/v1/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, pass })
         })
         .then(response => {
             if (response.ok) return response.json();
-            throw new Error("❌ Đăng nhập thất bại! Kiểm tra lại tài khoản hoặc mật khẩu.");
+            return response.json().then(errData => {
+                const msg = errData.error || errData.message || "Đăng nhập thất bại.";
+                throw new Error(msg);
+            }).catch(e => {
+                throw new Error(e.message || "❌ Lỗi kết nối tới máy chủ.");
+            });
         })
         .then(data => {
             jwtToken = data.token;
-            loginStatus.className = "status-box success";
-            loginStatus.innerText = `✅ Đăng nhập thành công! Chào mừng, ${data.user.username}.`;
+            userInfo = data.user;
+            
+            // Lưu vào localStorage để duy trì trạng thái
+            localStorage.setItem('jwtToken', jwtToken);
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            
+            updateAuthState();
         })
         .catch(err => {
             loginStatus.className = "status-box error";
             loginStatus.innerText = err.message;
+            loginStatus.style.display = "block";
         });
+    }
+
+    // Xử lý đăng xuất
+    function handleLogout() {
+        jwtToken = "";
+        userInfo = null;
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('userInfo');
+        
+        // Reset form
+        document.getElementById('username').value = "";
+        document.getElementById('password').value = "";
+        
+        updateAuthState();
     }
 
     // Xử lý upload
@@ -410,6 +679,7 @@
 
         statusDiv.className = "status-box info";
         statusDiv.innerText = "⏳ Đang tính toán thời lượng bài hát trên máy của bạn...";
+        statusDiv.style.display = "block";
 
         // Tính toán thời lượng bài hát sử dụng trình duyệt Web Audio API/Audio element trên client
         const audio = document.createElement('audio');
@@ -431,7 +701,7 @@
                 formData.append("coverFile", coverFile);
             }
 
-            fetch("http://localhost:8080/api/v1/songs/upload", {
+            fetch(`${currentApiUrl}/api/v1/songs/upload`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${jwtToken}`
@@ -457,6 +727,9 @@
             statusDiv.innerText = "❌ Lỗi đọc file âm thanh. Vui lòng kiểm tra lại định dạng file nhạc của bạn.";
         };
     }
+
+    // Khởi tạo trạng thái ban đầu khi load trang
+    updateAuthState();
 </script>
 
 </body>
