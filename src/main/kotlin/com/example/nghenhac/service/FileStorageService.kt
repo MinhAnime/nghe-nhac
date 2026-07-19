@@ -1,27 +1,24 @@
 package com.example.nghenhac.service
 
+import io.minio.GetPresignedObjectUrlArgs
+import io.minio.MinioClient
+import io.minio.PutObjectArgs
+import io.minio.http.Method
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import software.amazon.awssdk.core.sync.RequestBody
-import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.GetObjectRequest
-import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import software.amazon.awssdk.services.s3.presigner.S3Presigner
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
-import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Service
 class FileStorageService(
-    private val s3Client: S3Client,
-    private val s3Presigner: S3Presigner
+    private val minioClient: MinioClient
 ) {
 
-    @Value("\${r2.bucket.songs}")
+    @Value("\${minio.bucket.songs}")
     private lateinit var songBucket: String
 
-    @Value("\${r2.bucket.covers}")
+    @Value("\${minio.bucket.covers}")
     private lateinit var coverBucket: String
 
     private fun uploadFile(file: MultipartFile, bucket: String): String {
@@ -31,13 +28,14 @@ class FileStorageService(
             val uniqueId = UUID.randomUUID().toString()
             val objectName = if (fileExtension.isNotEmpty()) "$uniqueId.$fileExtension" else uniqueId
 
-            val putObjectRequest = PutObjectRequest.builder()
+            val putObjectArgs = PutObjectArgs.builder()
                 .bucket(bucket)
-                .key(objectName)
+                .`object`(objectName)
+                .stream(file.inputStream, file.size, -1) // -1 để tự động nhận diện part size
                 .contentType(file.contentType)
                 .build()
 
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.inputStream, file.size))
+            minioClient.putObject(putObjectArgs)
 
             return objectName
         } catch (e: Exception) {
@@ -55,18 +53,14 @@ class FileStorageService(
 
     private fun getPresignedUrl(objectName: String, bucket: String): String {
         try {
-            val getObjectRequest = GetObjectRequest.builder()
+            val args = GetPresignedObjectUrlArgs.builder()
+                .method(Method.GET)
                 .bucket(bucket)
-                .key(objectName)
+                .`object`(objectName)
+                .expiry(10, TimeUnit.MINUTES)
                 .build()
 
-            val presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10))
-                .getObjectRequest(getObjectRequest)
-                .build()
-
-            val presignedRequest = s3Presigner.presignGetObject(presignRequest)
-            return presignedRequest.url().toString()
+            return minioClient.getPresignedObjectUrl(args)
         } catch (e: Exception) {
             throw RuntimeException("Lỗi khi lấy presigned URL: ${e.message}")
         }

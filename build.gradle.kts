@@ -36,12 +36,12 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 
 
-    implementation("software.amazon.awssdk:s3:2.25.15")
+    implementation("io.minio:minio:8.6.0")
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
+        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xskip-metadata-version-check")
     }
 }
 
