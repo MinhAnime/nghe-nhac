@@ -38,7 +38,7 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .cors { } // Kích hoạt cấu hình CORS với Spring Security
+            .cors { it.configurationSource(corsConfigurationSource()) } // Kích hoạt cấu hình CORS với Spring Security
             .csrf { it.disable() }
 
 
