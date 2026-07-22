@@ -1,0 +1,21 @@
+name: Check production runners
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-server-1:
+    runs-on: [self-hosted, linux, x64, nghe-nhac-app]
+
+    steps:
+      - name: Check Server
+        shell: bash
+        run: |
+          hostname
+          whoami
+          id
+          docker ps
+          docker compose version
+          cd /home/minhduong/nghe-nhac
+          git fetch origin main
+
